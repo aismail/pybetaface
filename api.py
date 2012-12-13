@@ -1,7 +1,9 @@
 from base64 import b64encode
 from jinja2 import Template
 import logging
+import os
 import requests
+import sys
 import time
 from xml.etree import ElementTree
 
@@ -9,6 +11,16 @@ DEFAULT_API_KEY = 'd45fd466-51e2-4701-8da8-04351c872236'
 DEFAULT_API_SECRET = '171e8465-f548-401d-b63b-caf0dc28df5f'
 DEFAULT_API_URL = 'http://www.betafaceapi.com/service.svc'
 DEFAULT_POLL_INTERVAL = 1
+
+def we_are_frozen():
+    # All of the modules are built-in to the interpreter, e.g., by py2exe
+    return hasattr(sys, "frozen")
+
+def module_path():
+    encoding = sys.getfilesystemencoding()
+    if we_are_frozen():
+        return os.path.dirname(unicode(sys.executable, encoding))
+    return os.path.dirname(unicode(__file__, encoding))
 
 class BetaFaceAPI(object):
 
@@ -104,7 +116,7 @@ class BetaFaceAPI(object):
         }
         api_call_params.update(params)
 
-        template_name = "request_templates/%s.xml" % endpoint
+        template_name = "%s/request_templates/%s.xml" % (module_path(), endpoint)
         request_data = self._render_template(template_name, api_call_params)
         url = self.api_url + '/' + endpoint
         self.logger.info("Making HTTP request to %s" % url)
