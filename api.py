@@ -54,7 +54,10 @@ class BetaFaceAPI(object):
         while not result['ready']:
             time.sleep(self.poll_interval)
             result = self._api_call('GetImageInfo', {'image_uid': img_uid})
-        face_uid = result['face_uid']
+        if 'face_uid' in result:
+            face_uid = result['face_uid']
+        else:
+            return
 
         # Step 3: associate the face with the person via Faces_SetPerson endpoint
         params = {
@@ -82,7 +85,10 @@ class BetaFaceAPI(object):
         while not result['ready']:
             time.sleep(self.poll_interval)
             result = self._api_call('GetImageInfo', {'image_uid': img_uid})
-        face_uid = result['face_uid']
+        if 'face_uid' in result:
+            face_uid = result['face_uid']
+        else:
+            return {}
 
         # Step 3: Start a face recognition job
         params = {'face_uid': face_uid, 'namespace': 'all@%s' % namespace}
