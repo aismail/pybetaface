@@ -64,7 +64,19 @@ class BetaFaceAPI(object):
             'face_uid': face_uid,
             'person_id': person_id
         }
-        result = self._api_call('Faces_SetPerson', params)
+        result = self._api_call('SetPerson', params)
+
+    def get_image_info(self, img_uid):
+
+        result = self._api_call('GetImageInfo', {'image_uid': img_uid})
+        if result is None:
+            return None
+        
+        while not result['ready']:
+            time.sleep(self.poll_interval)
+            result = self._api_call('GetImageInfo', {'image_uid': img_uid})
+
+        return result
 
     def recognize_faces(self, file_name, namespace):
         # Step 1: Encode image in base 64, upload it to service and get image ID
