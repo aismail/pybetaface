@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<SetPersonRequest xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+					   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<api_key>{{api_key}}</api_key>
+	<api_secret>{{api_secret}}</api_secret>
+	<faces_uids>{{face_uid}}</faces_uids>
+	<person_id>{{person_id}}</person_id>
+
+</SetPersonRequest>

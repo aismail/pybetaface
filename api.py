@@ -64,7 +64,24 @@ class BetaFaceAPI(object):
             'face_uid': face_uid,
             'person_id': person_id
         }
-        result = self._api_call('Faces_SetPerson', params)
+        result = self._api_call('SetPerson', params)
+
+        if not result['ready']:
+            return None
+        else:
+            return result
+
+    def get_image_info(self, img_uid):
+
+        result = self._api_call('GetImageInfo', {'image_uid': img_uid})
+        if result is None:
+            return None
+        
+        while not result['ready']:
+            time.sleep(self.poll_interval)
+            result = self._api_call('GetImageInfo', {'image_uid': img_uid})
+
+        return result
 
     def recognize_faces(self, file_name, namespace):
         # Step 1: Encode image in base 64, upload it to service and get image ID
@@ -92,7 +109,10 @@ class BetaFaceAPI(object):
 
         # Step 3: Start a face recognition job
         params = {'face_uid': face_uid, 'namespace': 'all@%s' % namespace}
-        result = self._api_call('Faces_Recognize', params)
+        result = self._api_call('RecognizeFaces', params)
+        if not result['ready']:
+            self.logger.error('RecognizeFaces returned int_response != 0')
+            return None
 
         # Step 4: Wait for the recognition job to finish
         params = {'recognize_job_id': result['recognize_job_id']}
@@ -126,15 +146,20 @@ class BetaFaceAPI(object):
         request_data = self._render_template(template_name, api_call_params)
         url = self.api_url + '/' + endpoint
         self.logger.info("Making HTTP request to %s" % url)
+        if endpoint != 'UploadNewImage_File':
+            self.logger.debug("Making HTTP request with body:\n%s" % request_data)
         headers = {'content-type': 'application/xml'}
         request = requests.post(url, data = request_data, headers = headers)
         # If HTTP request failed, bail out
         if request.status_code != 200:
             self.logger.error("HTTP request failed with status code %d" %
                               request.status_code)
-            return None
+            request.raise_for_status() # Communicate error to the client, so he can react.
+            return request # If no error to raise, but still !=200, share the request object 
 
         result = {'raw_content': request.text}
+        if endpoint != 'GetImageInfo':
+            self.logger.debug('Response:\n' + request.text)
 
         request_parser = getattr(self, '_parse_%s' % endpoint, None)
         if request_parser is not None:
@@ -180,6 +205,17 @@ class BetaFaceAPI(object):
 
         return result
 
+    def _parse_SetPerson(self, response):
+        """ Parse the get image info response. """
+        result = {}
+
+        ready = response.findall('.//int_response')
+        if len(ready) == 0:
+            return None
+        result['ready'] = (ready[0].text.strip() == '0')
+
+        return result
+
     def _parse_GetImageInfo(self, response):
         """ Parse the get image info response. """
         result = {}
@@ -202,9 +238,18 @@ class BetaFaceAPI(object):
 
         return result
 
-    def _parse_Faces_Recognize(self, response):
+    def _parse_RecognizeFaces(self, response):
         """ Parse the Faces_Recognize result. """
         result = {}
+
+        ready = response.findall('.//int_response')
+        if len(ready) == 0:
+            return None
+        result['ready'] = (ready[0].text.strip() == '0')
+
+        # If not ready yet, stop parsing at 'ready'
+        if not result['ready']:
+            return result
 
         recognize_job_id = response.findall('.//recognize_uid')
         if len(recognize_job_id) == 0:
