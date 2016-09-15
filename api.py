@@ -144,7 +144,8 @@ class BetaFaceAPI(object):
         if request.status_code != 200:
             self.logger.error("HTTP request failed with status code %d" %
                               request.status_code)
-            return None
+            request.raise_for_status() # Communicate error to the client, so he can react.
+            return request # If no error to raise, but still !=200, share the request object 
 
         result = {'raw_content': request.text}
 
