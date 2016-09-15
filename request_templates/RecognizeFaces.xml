@@ -5,14 +5,8 @@
 
 	<api_key>{{api_key}}</api_key>
 	<api_secret>{{api_secret}}</api_secret>
-	<faces_uids>
-   		<guid xmlns="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
-     		{{face_uid}}</guid>
-	</faces_uids>
+	<faces_uids>{{face_uid}}</faces_uids>
 	<parameters></parameters>
-	<targets>
-   		<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
-   			{{namespace}}</string>
-	</targets>
+	<targets>{{namespace}}</targets>
 
 </RecognizeFacesRequest>
