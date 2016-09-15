@@ -104,7 +104,7 @@ class BetaFaceAPI(object):
 
         # Step 3: Start a face recognition job
         params = {'face_uid': face_uid, 'namespace': 'all@%s' % namespace}
-        result = self._api_call('Faces_Recognize', params)
+        result = self._api_call('RecognizeFaces', params)
 
         # Step 4: Wait for the recognition job to finish
         params = {'recognize_job_id': result['recognize_job_id']}
@@ -214,7 +214,7 @@ class BetaFaceAPI(object):
 
         return result
 
-    def _parse_Faces_Recognize(self, response):
+    def _parse_RecognizeFaces(self, response):
         """ Parse the Faces_Recognize result. """
         result = {}
 
